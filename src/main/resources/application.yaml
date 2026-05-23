@@ -1,0 +1,67 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: screen-share-service
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/screendb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:@ezio1985}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: 6379
+      timeout: 2000ms
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+  security:
+
+    user:
+      name: admin
+      password: disabled
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  access-key: minioadmin
+  secret-key: minioadmin
+  buckets:
+    chunks: video-chunks
+    videos: final-videos
+    thumbnails: thumbnails
+
+jwt:
+  secret: ${JWT_SECRET:super-secret-key-change-in-prod-min-256-bits}
+  expiry-minutes: 60
+
+app:
+  share-base-url: ${APP_BASE_URL:http://localhost:8082}
+  chunk-temp-dir: /tmp/chunks
+  ffmpeg-path: /usr/bin/ffmpeg
+
+analytics:
+  ping-interval-seconds: 5
+  session-ttl-minutes: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
