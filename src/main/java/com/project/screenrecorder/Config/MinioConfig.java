@@ -1,8 +1,5 @@
 package com.project.screenrecorder.Config;
 
-
-
-
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
