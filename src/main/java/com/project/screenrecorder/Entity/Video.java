@@ -30,6 +30,8 @@ public class Video {
 
         private String minioPath;
 
+        private String thumbnailPath;
+
         @Enumerated(EnumType.STRING)
         private VideoStatus status;
 

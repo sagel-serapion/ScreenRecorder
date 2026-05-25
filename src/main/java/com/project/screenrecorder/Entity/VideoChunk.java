@@ -16,7 +16,7 @@ public class VideoChunk {
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    private Long videoId;
+    private String videoId;
 
     private int chunkIndex;
 
