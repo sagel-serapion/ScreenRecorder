@@ -14,7 +14,7 @@ public class Video {
 
 
         public enum VideoStatus{
-                UPLOADING , PROCESSING , READY
+                UPLOADING , PROCESSING , READY , PROCESSING_FAILED
         }
 
         @Id
