@@ -13,6 +13,7 @@ import com.project.screenrecorder.Repository.VideoRepository;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -21,13 +22,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import java.io.BufferedWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -50,6 +54,12 @@ public class UploadService {
     @Value("${app.chunk-temp-dir}")
     private String chunkTempDir;
 
+    @Value("${minio.buckets.videos}")
+    private String finalVideos;
+
+    @Value("${app.share-base-url}")
+    private String baseUrl;
+
     private Path getChunkTempDir() {
         if (chunkTempDir != null && !chunkTempDir.isBlank()) {
             return Path.of(chunkTempDir);  // use if explicitly set
@@ -58,8 +68,10 @@ public class UploadService {
         return Path.of(System.getProperty("java.io.tmpdir"), "chunks");
     }
 
-    @Value("${app.ffmpeg-path.ffmpeg}")
+    @Value("${app.ffmpeg-path}")
     private String ffmpegPath;
+
+
 
     public  UploadInitResponse initUpload( UploadInitRequest uploadInitRequest){
 
@@ -118,6 +130,9 @@ public class UploadService {
 
     public CompleteUploadResponse completeUpload(String videoId) throws  Exception{
 
+
+
+
             Video video = videoRepository.findById(videoId)
                     .orElseThrow(() -> new RuntimeException("videoId" + videoId + " not found "));
 
@@ -170,37 +185,74 @@ public class UploadService {
                     "-f", "concat",
                     "-safe", "0",
                     "-i" , concatFile.toAbsolutePath().toString(),
-                    "-c","copy", outputFile.toAbsolutePath().toString()
-
+                    "-c","copy",
+                    outputFile.toAbsolutePath().toString()
             );
 
+            pb.redirectErrorStream(true);
+            Process process = pb.start();
+
+            int exitcode = process.waitFor();
+
+            if(exitcode != 0) {
+                video.setStatus(Video.VideoStatus.PROCESSING_FAILED);
+                videoRepository.save(video);
+                throw new RuntimeException("FFmpeg failed with exit code " + exitcode);
+            }
 
 
+            // 4. Upload merged file to MinIO
+            String finalMinioPath  = videoId + "/output.mp4";
+            try(InputStream outputStream = Files.newInputStream(outputFile)) {
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(finalVideos)
+                                .object(finalMinioPath)
+                                .stream(outputStream,Files.size(outputFile),-1)
+                                .contentType("video/mp4")
+                                .build());
+            }
 
+            // 5. Delete chunks from MinIO
+            for (VideoChunk chunk : chunks) {
+                minioClient.removeObject(
+                        RemoveObjectArgs.builder()
+                                .bucket(chunksBucket)
+                                .bucket(chunk.getMinioPath())
+                                .build()
+                );
+            }
 
+            // 6. Update video in DB
 
+            video.setMinioPath(finalMinioPath);
+            video.setStatus(Video.VideoStatus.READY);
+            videoRepository.save(video);
 
+            // 7. Build and return response
 
-
-
-
-
-
-
-
-
-
-
+            CompleteUploadResponse response = new CompleteUploadResponse();
+            response.setToken(video.getToken());
+            response.setShareUrl(baseUrl + "/watch/" + video.getToken());
+            response.setStatus(video.getStatus().name());
+            return response;
 
 
         } finally {
+            // 8.  Cleanup temp folder always, even if exception thrown
+            try (Stream<Path> walk = Files.walk(tempDir)) {
+                walk.sorted(Comparator.reverseOrder())
+                        .forEach(path -> {
+                            try { Files.delete(path); }
+                            catch (IOException ignored) {}
+                        });
 
+            }
         }
 
 
 
-        CompleteUploadResponse response = new CompleteUploadResponse();
-        return response;
+
 
     }
 
