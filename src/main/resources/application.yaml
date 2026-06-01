@@ -54,7 +54,7 @@ jwt:
 app:
   share-base-url: ${APP_BASE_URL:http://localhost:8082}
   chunk-temp-dir:  ${CHUNK_TEMP_DIR:}
-  ffmpeg-path: ffmpeg
+  ffmpeg-path: ${FFMPEG_PATH:ffmpeg}
 
 analytics:
   ping-interval-seconds: 5
