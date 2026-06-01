@@ -96,13 +96,13 @@ public class UploadService {
 
         try {
 
-            String objectName = videoId + "/" + chunkIndex;
-            String minioPath = chunksBucket + "/" + objectName;
+            String minioPath = videoId + "/" + chunkIndex;
+
 
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(chunksBucket)
-                            .object(objectName)
+                            .object(minioPath)
                             .stream(file.getInputStream(), file.getSize(), -1)
                             .contentType("application/octet-stream")
                             .build()
@@ -131,6 +131,8 @@ public class UploadService {
     public CompleteUploadResponse completeUpload(String videoId) throws  Exception{
 
 
+        System.out.println("FFmpeg path: " + ffmpegPath);
+
 
 
             Video video = videoRepository.findById(videoId)
@@ -141,7 +143,7 @@ public class UploadService {
             List<VideoChunk> chunks = videoChunkRepository.findByVideoIdOrderByChunkIndexAsc(videoId);
 
             if (chunks.isEmpty()){
-                throw new RuntimeException("chunks are empty");
+                throw new RuntimeException("No chunks found for video : " + videoId);
             }
             Path tempDir = getChunkTempDir().resolve(videoId);
             Files.createDirectories(tempDir);
@@ -192,6 +194,9 @@ public class UploadService {
             pb.redirectErrorStream(true);
             Process process = pb.start();
 
+            String ffmpegOutput = new String(process.getInputStream().readAllBytes());
+            System.out.println("FFmpeg output: " + ffmpegOutput);
+
             int exitcode = process.waitFor();
 
             if(exitcode != 0) {
@@ -199,6 +204,7 @@ public class UploadService {
                 videoRepository.save(video);
                 throw new RuntimeException("FFmpeg failed with exit code " + exitcode);
             }
+
 
 
             // 4. Upload merged file to MinIO
@@ -215,10 +221,11 @@ public class UploadService {
 
             // 5. Delete chunks from MinIO
             for (VideoChunk chunk : chunks) {
+
                 minioClient.removeObject(
                         RemoveObjectArgs.builder()
                                 .bucket(chunksBucket)
-                                .bucket(chunk.getMinioPath())
+                                .object(chunk.getMinioPath())
                                 .build()
                 );
             }
@@ -250,12 +257,5 @@ public class UploadService {
             }
         }
 
-
-
-
-
     }
-
-
-
 }

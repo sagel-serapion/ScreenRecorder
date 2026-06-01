@@ -3,6 +3,7 @@ package com.project.screenrecorder.Controller;
 
 
 import com.project.screenrecorder.DTO.ChunkUploadResponse;
+import com.project.screenrecorder.DTO.CompleteUploadResponse;
 import com.project.screenrecorder.DTO.UploadInitRequest;
 import com.project.screenrecorder.DTO.UploadInitResponse;
 import com.project.screenrecorder.Service.UploadService;
@@ -36,6 +37,13 @@ public class UploadController {
                 @RequestParam MultipartFile file
         ){
             ChunkUploadResponse response = uploadService.uploadChunk(videoId, chunkIndex, file);
+            return ResponseEntity.ok(response);
+        }
+
+        // checked exceptions propagate up the call stack
+        @PostMapping("/{videoId}/complete")
+        ResponseEntity<CompleteUploadResponse> completeUpload(@PathVariable String videoId) throws Exception{
+            CompleteUploadResponse response = uploadService.completeUpload(videoId);
             return ResponseEntity.ok(response);
         }
 
