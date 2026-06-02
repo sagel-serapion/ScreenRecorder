@@ -175,7 +175,7 @@ public class UploadService {
             Path concatFile = tempDir.resolve("filelist.txt");
             try(BufferedWriter writer = Files.newBufferedWriter(concatFile)){
                 for (Path chunkFilePath : chunkFilePaths ){
-                    writer.write("file '" + chunkFilePath.toAbsolutePath().toString() + "'");
+                    writer.write("file '" + chunkFilePath.toAbsolutePath() + "'");
                     writer.newLine();
                 }
             }
