@@ -23,6 +23,15 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
     }
 
+    @ExceptionHandler(VideoNotFoundException.class)
+    public ResponseEntity<Map<String,String>> handleVideoNotFoundException(VideoNotFoundException exception){
+        return buildError(HttpStatus.NOT_FOUND,exception.getMessage());
+    }
+    @ExceptionHandler(VideoNotReadyException.class)
+    public ResponseEntity<Map<String,String>> handleVideoNotFoundException(VideoNotReadyException exception){
+        return buildError(HttpStatus.CONFLICT,exception.getMessage());
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String,String>> handleValidationErrors(MethodArgumentNotValidException exception){
