@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface VideoRepository extends JpaRepository<Video,String> {
 
-    Optional<Video> findByVideoId(String videoId);
+    Optional<Video> findById(String videoId);
 
     Optional<Video> findByToken(String token);
 }
