@@ -2,18 +2,19 @@ package com.project.screenrecorder.Service;
 
 
 import com.project.screenrecorder.Entity.Video;
-import com.project.screenrecorder.Exception.InvalidPasswordException;
 import com.project.screenrecorder.Exception.VideoNotFoundException;
 import com.project.screenrecorder.Exception.VideoNotReadyException;
-import com.project.screenrecorder.Exception.WrongEndpointException;
 import com.project.screenrecorder.Repository.VideoRepository;
 import com.project.screenrecorder.Security.JwtUtils;
-import com.project.screenrecorder.Security.PasswordConfig;
+import com.project.screenrecorder.Security.SecurityBridge;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.concurrent.TimeUnit;
@@ -32,9 +33,11 @@ public class WatchService {
 
     private final MinioClient minioClient;
 
-    private final PasswordConfig passwordConfig;
+
 
     private final JwtUtils jwtUtils;
+
+    private final AuthenticationManager authenticationManager;
 
     private Video resolveVideo(String token) {
 
@@ -70,29 +73,34 @@ public class WatchService {
         }
     }
 
-    private String authenticateVideo(String token , String rawPassword){
+    public String authenticateVideo(String token , String rawPassword){
 
-       Video video =  resolveVideo(token);
+        Authentication authentication = authenticationManager.authenticate(
+                // passport
+                new UsernamePasswordAuthenticationToken(
+                        token,
+                        rawPassword
+                )
+        );
 
-       if ( video.getPasswordHash() == null ){
-           throw new WrongEndpointException("Video has No password");
-       }
-       if (passwordConfig.passwordEncoder().matches(rawPassword,video.getPasswordHash())){
+        SecurityBridge securityBridge = (SecurityBridge) authentication.getPrincipal();
 
-            return jwtUtils.generateToken(token);
 
-        }else {
-           throw new InvalidPasswordException("Password is Invalid");
-       }
+        return jwtUtils.generateToken(securityBridge.getUsername());
+
+
 
     }
 
+    public String getWatchUrl(String token , String jwt){
 
+        if (jwt != null) {
+            return "jwt not yet";
+        }
+            else {
+                Video video =  resolveVideo(token);
+                return generatePresignedUrl(video.getId());
 
-
-
-
-
-
-
+        }
+    }
 }

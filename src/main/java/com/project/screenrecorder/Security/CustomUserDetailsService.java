@@ -3,6 +3,7 @@ package com.project.screenrecorder.Security;
 
 import com.project.screenrecorder.Entity.Video;
 import com.project.screenrecorder.Exception.VideoNotFoundException;
+import com.project.screenrecorder.Exception.VideoNotReadyException;
 import com.project.screenrecorder.Repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         Video video = videoRepository.findByToken(username).
                 orElseThrow(()-> new VideoNotFoundException("Video with "+username+ " not found"));
 
+        if (video.getStatus() != Video.VideoStatus.READY){
+            throw new VideoNotReadyException("Video with "+ video.getToken() + " is still processing");
+        }
         return new SecurityBridge(video);
     }
 }
