@@ -27,8 +27,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String,String>> handleVideoNotFoundException(VideoNotFoundException exception){
         return buildError(HttpStatus.NOT_FOUND,exception.getMessage());
     }
+
     @ExceptionHandler(VideoNotReadyException.class)
     public ResponseEntity<Map<String,String>> handleVideoNotFoundException(VideoNotReadyException exception){
+        return buildError(HttpStatus.CONFLICT,exception.getMessage());
+    }
+
+    @ExceptionHandler(WrongEndpointException.class)
+    public ResponseEntity<Map<String,String>> handleWrongEndpointException(WrongEndpointException exception){
         return buildError(HttpStatus.CONFLICT,exception.getMessage());
     }
 
