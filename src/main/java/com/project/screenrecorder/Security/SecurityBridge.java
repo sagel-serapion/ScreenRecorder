@@ -29,4 +29,8 @@ public class SecurityBridge implements UserDetails {
     public String getUsername() {
         return video.getToken();
     }
+
+    public String getVideoId(){
+        return video.getId();
+    }
 }

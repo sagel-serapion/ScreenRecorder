@@ -11,11 +11,12 @@ import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -32,8 +33,6 @@ public class WatchService {
     private final VideoRepository videoRepository;
 
     private final MinioClient minioClient;
-
-
 
     private final JwtUtils jwtUtils;
 
@@ -69,7 +68,7 @@ public class WatchService {
             );
 
         } catch (Exception e) {
-            throw new RuntimeException("Temporary direct-access URL to MinIO failed" + e.getMessage());
+            throw new RuntimeException("Temporary direct-access URL to MinIO failed " + e.getMessage());
         }
     }
 
@@ -92,15 +91,22 @@ public class WatchService {
 
     }
 
-    public String getWatchUrl(String token , String jwt){
+    public String getWatchUrl(String token){
+        Video video =  resolveVideo(token);
 
-        if (jwt != null) {
-            return "jwt not yet";
+        if (video.getPasswordHash() != null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                    "This video is password protected, use /auth");
         }
-            else {
-                Video video =  resolveVideo(token);
-                return generatePresignedUrl(video.getId());
+        return generatePresignedUrl(video.getId());
+    }
 
+    public String getWatchUrl(String token , SecurityBridge current){
+
+        if (!token.equals(current.getUsername())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Token mismatch");
         }
+        return generatePresignedUrl(current.getVideoId());
+
     }
 }
