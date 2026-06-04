@@ -12,7 +12,7 @@ public interface VideoMapper {
 
 
 
-
+     @Mapping(source="title", target = "title")
      Video toEntity(UploadInitRequest request);
 
 }
