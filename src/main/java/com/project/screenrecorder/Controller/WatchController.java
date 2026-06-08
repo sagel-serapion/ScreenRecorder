@@ -1,7 +1,7 @@
 package com.project.screenrecorder.Controller;
 
 
-import com.project.screenrecorder.DTO.watch.AccessTokenResponse;
+
 import com.project.screenrecorder.DTO.watch.VideoAuthRequest;
 import com.project.screenrecorder.DTO.watch.WatchUrlResponse;
 import com.project.screenrecorder.Security.SecurityBridge;
@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/watch")
@@ -23,17 +25,16 @@ public class WatchController {
     ResponseEntity<WatchUrlResponse> watchUrl(
             @PathVariable String token
     ){
-        WatchUrlResponse reponseUrl = watchService.getWatchUrl(token );
-        return ResponseEntity.ok(reponseUrl);
+        WatchUrlResponse responseUrl = watchService.getWatchUrl(token );
+        return ResponseEntity.ok(responseUrl);
     }
 
     @PostMapping("/{token}/auth")
-    ResponseEntity<AccessTokenResponse> authenticate(
+    ResponseEntity<Map<String,String>> authenticate(
             @PathVariable String token,
             @RequestBody  VideoAuthRequest videoAuthRequest
             ){
-        AccessTokenResponse jwt  = watchService.authenticateVideo(token , videoAuthRequest.getPassword());
-        return ResponseEntity.ok(jwt);
+        return  watchService.authenticateVideo(token , videoAuthRequest.getPassword());
     }
 
     @GetMapping("/{token}/stream")

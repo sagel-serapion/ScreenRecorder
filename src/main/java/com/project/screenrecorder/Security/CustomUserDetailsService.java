@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Video video = videoRepository.findByToken(username).
-                orElseThrow(()-> new VideoNotFoundException("Video with "+username+ " not found"));
+                orElseThrow(()-> new UsernameNotFoundException("Video with "+username+ " not found"));
 
         if (video.getStatus() != Video.VideoStatus.READY){
             throw new VideoNotReadyException("Video with "+ video.getToken() + " is still processing");

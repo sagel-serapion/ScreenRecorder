@@ -40,7 +40,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
             try{
 
-                username =jwtUtils.extractName(accesstoken);
+                username = jwtUtils.extractName(accesstoken);
 
             }
             catch (JwtException e){
@@ -53,7 +53,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if( username != null && SecurityContextHolder.getContext().getAuthentication() == null){
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
             if (jwtUtils.validateToken(accesstoken,username,userDetails)){
 
@@ -64,6 +65,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
+
 
         }
         // if missed returned a 200 but no response body

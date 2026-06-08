@@ -38,6 +38,12 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.CONFLICT,exception.getMessage());
     }
 
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Map<String,String>> handleInvalidPasswordException(InvalidPasswordException exception){
+        return buildError(HttpStatus.UNAUTHORIZED,exception.getMessage());
+    }
+
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String,String>> handleValidationErrors(MethodArgumentNotValidException exception){

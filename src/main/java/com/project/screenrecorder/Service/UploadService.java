@@ -97,6 +97,7 @@ public class UploadService {
         try {
 
             String minioPath = videoId + "/" + chunkIndex;
+
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(chunksBucket)

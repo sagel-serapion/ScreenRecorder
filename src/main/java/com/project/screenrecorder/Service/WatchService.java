@@ -1,9 +1,9 @@
 package com.project.screenrecorder.Service;
 
 
-import com.project.screenrecorder.DTO.watch.AccessTokenResponse;
 import com.project.screenrecorder.DTO.watch.WatchUrlResponse;
 import com.project.screenrecorder.Entity.Video;
+import com.project.screenrecorder.Exception.InvalidPasswordException;
 import com.project.screenrecorder.Exception.VideoNotFoundException;
 import com.project.screenrecorder.Exception.VideoNotReadyException;
 import com.project.screenrecorder.Repository.VideoRepository;
@@ -15,12 +15,16 @@ import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 
@@ -76,23 +80,31 @@ public class WatchService {
         }
     }
 
-    public AccessTokenResponse authenticateVideo(String token , String rawPassword){
+    public ResponseEntity<Map<String,String>> authenticateVideo(String token , String rawPassword){
 
-        Authentication authentication = authenticationManager.authenticate(
-                // passport
-                new UsernamePasswordAuthenticationToken(
-                        token,
-                        rawPassword
-                )
-        );
+        Map<String,String> response = new HashMap<>();
 
-        SecurityBridge securityBridge = (SecurityBridge) authentication.getPrincipal();
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    // passport
+                    new UsernamePasswordAuthenticationToken(
+                            token,
+                            rawPassword
+                    )
+            );
 
-        String accessToken = jwtUtils.generateToken(securityBridge.getUsername());
+            SecurityBridge securityBridge = (SecurityBridge) authentication.getPrincipal();
 
-        AccessTokenResponse response = new AccessTokenResponse();
-        response.setAccessToken(accessToken);
-        return response;
+            String accessToken = jwtUtils.generateToken(securityBridge.getUsername());
+            response.put("accessToken",accessToken);
+
+            return ResponseEntity.ok(response);
+
+        } catch (BadCredentialsException e){
+            InvalidPasswordException exception = new InvalidPasswordException("Wrong password");
+            response.put("error",exception.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
 
 
 
