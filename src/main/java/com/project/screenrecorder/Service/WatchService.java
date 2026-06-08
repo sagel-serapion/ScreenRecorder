@@ -1,6 +1,8 @@
 package com.project.screenrecorder.Service;
 
 
+import com.project.screenrecorder.DTO.watch.AccessTokenResponse;
+import com.project.screenrecorder.DTO.watch.WatchUrlResponse;
 import com.project.screenrecorder.Entity.Video;
 import com.project.screenrecorder.Exception.VideoNotFoundException;
 import com.project.screenrecorder.Exception.VideoNotReadyException;
@@ -9,6 +11,7 @@ import com.project.screenrecorder.Security.JwtUtils;
 import com.project.screenrecorder.Security.SecurityBridge;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
+import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -61,6 +64,7 @@ public class WatchService {
 
             return minioClient.getPresignedObjectUrl(
                     GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET)
                             .bucket(finalVideos)
                             .object(video.getMinioPath())
                             .expiry(1, TimeUnit.HOURS)
@@ -72,7 +76,7 @@ public class WatchService {
         }
     }
 
-    public String authenticateVideo(String token , String rawPassword){
+    public AccessTokenResponse authenticateVideo(String token , String rawPassword){
 
         Authentication authentication = authenticationManager.authenticate(
                 // passport
@@ -84,29 +88,36 @@ public class WatchService {
 
         SecurityBridge securityBridge = (SecurityBridge) authentication.getPrincipal();
 
+        String accessToken = jwtUtils.generateToken(securityBridge.getUsername());
 
-        return jwtUtils.generateToken(securityBridge.getUsername());
+        AccessTokenResponse response = new AccessTokenResponse();
+        response.setAccessToken(accessToken);
+        return response;
 
 
 
     }
 
-    public String getWatchUrl(String token){
+    public WatchUrlResponse getWatchUrl(String token){
         Video video =  resolveVideo(token);
 
         if (video.getPasswordHash() != null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "This video is password protected, use /auth");
+                    "This video is password protected");
         }
-        return generatePresignedUrl(video.getId());
+        WatchUrlResponse response = new WatchUrlResponse();
+        response.setMinioUrl(generatePresignedUrl(video.getId()));
+        return response;
     }
 
-    public String getWatchUrl(String token , SecurityBridge current){
+    public WatchUrlResponse getWatchUrl(String token , SecurityBridge current){
 
         if (!token.equals(current.getUsername())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Token mismatch");
         }
-        return generatePresignedUrl(current.getVideoId());
+        WatchUrlResponse response = new WatchUrlResponse();
+        response.setMinioUrl(generatePresignedUrl(current.getVideoId()));
+        return response;
 
     }
 }

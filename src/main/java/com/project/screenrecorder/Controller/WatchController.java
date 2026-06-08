@@ -1,7 +1,9 @@
 package com.project.screenrecorder.Controller;
 
 
-import com.project.screenrecorder.DTO.VideoAuthRequest;
+import com.project.screenrecorder.DTO.watch.AccessTokenResponse;
+import com.project.screenrecorder.DTO.watch.VideoAuthRequest;
+import com.project.screenrecorder.DTO.watch.WatchUrlResponse;
 import com.project.screenrecorder.Security.SecurityBridge;
 import com.project.screenrecorder.Service.WatchService;
 import lombok.RequiredArgsConstructor;
@@ -18,29 +20,29 @@ public class WatchController {
 
 
     @GetMapping("/{token}")
-    ResponseEntity<String> watchUrl(
+    ResponseEntity<WatchUrlResponse> watchUrl(
             @PathVariable String token
     ){
-        String url = watchService.getWatchUrl(token );
-        return ResponseEntity.ok(url);
+        WatchUrlResponse reponseUrl = watchService.getWatchUrl(token );
+        return ResponseEntity.ok(reponseUrl);
     }
 
     @PostMapping("/{token}/auth")
-    ResponseEntity<String> authenticate(
+    ResponseEntity<AccessTokenResponse> authenticate(
             @PathVariable String token,
-            VideoAuthRequest videoAuthRequest
+            @RequestBody  VideoAuthRequest videoAuthRequest
             ){
-        String jwt  = watchService.authenticateVideo(token , videoAuthRequest.getPassword());
+        AccessTokenResponse jwt  = watchService.authenticateVideo(token , videoAuthRequest.getPassword());
         return ResponseEntity.ok(jwt);
     }
 
     @GetMapping("/{token}/stream")
-    ResponseEntity<String> watchUrlStream(
+    ResponseEntity<WatchUrlResponse> watchUrlStream(
             @AuthenticationPrincipal SecurityBridge current ,
             @PathVariable String token
     ){
-        String url = watchService.getWatchUrl(token , current);
-        return ResponseEntity.ok(url);
+        WatchUrlResponse reponseUrl = watchService.getWatchUrl(token , current);
+        return ResponseEntity.ok(reponseUrl);
     }
 
 

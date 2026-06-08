@@ -1,10 +1,10 @@
 package com.project.screenrecorder.Service;
 
 
-import com.project.screenrecorder.DTO.ChunkUploadResponse;
-import com.project.screenrecorder.DTO.CompleteUploadResponse;
-import com.project.screenrecorder.DTO.UploadInitRequest;
-import com.project.screenrecorder.DTO.UploadInitResponse;
+import com.project.screenrecorder.DTO.upload.ChunkUploadResponse;
+import com.project.screenrecorder.DTO.upload.CompleteUploadResponse;
+import com.project.screenrecorder.DTO.upload.UploadInitRequest;
+import com.project.screenrecorder.DTO.upload.UploadInitResponse;
 import com.project.screenrecorder.Entity.Video;
 import com.project.screenrecorder.Entity.VideoChunk;
 import com.project.screenrecorder.Mapper.VideoMapper;
@@ -97,8 +97,6 @@ public class UploadService {
         try {
 
             String minioPath = videoId + "/" + chunkIndex;
-
-
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(chunksBucket)
