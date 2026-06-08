@@ -1,4 +1,4 @@
-package com.project.screenrecorder.DTO;
+package com.project.screenrecorder.DTO.upload;
 
 
 import jakarta.validation.constraints.NotBlank;

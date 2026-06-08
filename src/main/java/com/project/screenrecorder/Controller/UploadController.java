@@ -2,10 +2,10 @@ package com.project.screenrecorder.Controller;
 
 
 
-import com.project.screenrecorder.DTO.ChunkUploadResponse;
-import com.project.screenrecorder.DTO.CompleteUploadResponse;
-import com.project.screenrecorder.DTO.UploadInitRequest;
-import com.project.screenrecorder.DTO.UploadInitResponse;
+import com.project.screenrecorder.DTO.upload.ChunkUploadResponse;
+import com.project.screenrecorder.DTO.upload.CompleteUploadResponse;
+import com.project.screenrecorder.DTO.upload.UploadInitRequest;
+import com.project.screenrecorder.DTO.upload.UploadInitResponse;
 import com.project.screenrecorder.Service.UploadService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
