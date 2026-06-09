@@ -8,7 +8,6 @@ import com.project.screenrecorder.Repository.VideoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,9 +17,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final VideoRepository videoRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String username) throws VideoNotFoundException ,VideoNotReadyException  {
+
         Video video = videoRepository.findByToken(username).
-                orElseThrow(()-> new UsernameNotFoundException("Video with "+username+ " not found"));
+                orElseThrow(()-> new VideoNotFoundException("Video with "+username+ " not found"));
 
         if (video.getStatus() != Video.VideoStatus.READY){
             throw new VideoNotReadyException("Video with "+ video.getToken() + " is still processing");

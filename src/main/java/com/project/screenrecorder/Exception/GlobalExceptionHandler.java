@@ -1,6 +1,7 @@
 package com.project.screenrecorder.Exception;
 
 
+import com.project.screenrecorder.DTO.errorResponse.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -14,33 +15,33 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
-        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        return buildError(HttpStatus.BAD_REQUEST, ex.getMessage()); // 400
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleException(Exception ex) {
-        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        return buildError(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage()); // 500
     }
 
     @ExceptionHandler(VideoNotFoundException.class)
-    public ResponseEntity<Map<String,String>> handleVideoNotFoundException(VideoNotFoundException exception){
-        return buildError(HttpStatus.NOT_FOUND,exception.getMessage());
+    public ResponseEntity<ErrorResponse> handleVideoNotFoundException(VideoNotFoundException exception){
+        return buildError(HttpStatus.NOT_FOUND,exception.getMessage()); // 404
     }
 
     @ExceptionHandler(VideoNotReadyException.class)
-    public ResponseEntity<Map<String,String>> handleVideoNotFoundException(VideoNotReadyException exception){
-        return buildError(HttpStatus.CONFLICT,exception.getMessage());
+    public ResponseEntity<ErrorResponse> VideoNotReadyException(VideoNotReadyException exception){
+        return buildError(HttpStatus.CONFLICT,exception.getMessage()); // 409
     }
 
     @ExceptionHandler(WrongEndpointException.class)
-    public ResponseEntity<Map<String,String>> handleWrongEndpointException(WrongEndpointException exception){
+    public ResponseEntity<ErrorResponse> handleWrongEndpointException(WrongEndpointException exception){
         return buildError(HttpStatus.CONFLICT,exception.getMessage());
     }
 
     @ExceptionHandler(InvalidPasswordException.class)
-    public ResponseEntity<Map<String,String>> handleInvalidPasswordException(InvalidPasswordException exception){
-        return buildError(HttpStatus.UNAUTHORIZED,exception.getMessage());
+    public ResponseEntity<ErrorResponse> handleInvalidPasswordException(InvalidPasswordException exception){
+        return buildError(HttpStatus.UNAUTHORIZED,exception.getMessage()); // 401
     }
 
 
@@ -57,10 +58,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
-    private ResponseEntity<Map<String, String>> buildError(HttpStatus status, String message) {
-        Map<String, String> error = new HashMap<>();
-        error.put("error", message);
-        return ResponseEntity.status(status).body(error);
+    private ResponseEntity<ErrorResponse> buildError(HttpStatus status, String message) {
+        ErrorResponse response = new ErrorResponse();
+        response.setErrorMessage(message);
+        return ResponseEntity.status(status).body(response);
     }
 
 

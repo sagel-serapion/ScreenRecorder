@@ -35,8 +35,6 @@ public class WatchService {
     @Value("${minio.buckets.videos}")
     private String finalVideos;
 
-
-
     private final VideoRepository videoRepository;
 
     private final MinioClient minioClient;
@@ -45,18 +43,6 @@ public class WatchService {
 
     private final AuthenticationManager authenticationManager;
 
-    private Video resolveVideo(String token) {
-
-            Video video = videoRepository.findByToken(token).orElseThrow(
-                    () -> new VideoNotFoundException("Video with " + token + " not found")
-            );
-
-            if (video.getStatus() != Video.VideoStatus.READY){
-                throw new VideoNotReadyException("Video with "+ token + " is still processing");
-            }
-
-            return video;
-    }
 
     private String generatePresignedUrl(String videoId){
 
@@ -85,6 +71,7 @@ public class WatchService {
         Map<String,String> response = new HashMap<>();
 
         try {
+
             Authentication authentication = authenticationManager.authenticate(
                     // passport
                     new UsernamePasswordAuthenticationToken(
@@ -111,7 +98,14 @@ public class WatchService {
     }
 
     public WatchUrlResponse getWatchUrl(String token){
-        Video video =  resolveVideo(token);
+
+        Video video = videoRepository.findByToken(token).orElseThrow(
+                () -> new VideoNotFoundException("Video with " + token + " not found")
+        );
+
+        if (video.getStatus() != Video.VideoStatus.READY){
+            throw new VideoNotReadyException("Video with "+ token + " is still processing");
+        }
 
         if (video.getPasswordHash() != null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
