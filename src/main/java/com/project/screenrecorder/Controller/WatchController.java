@@ -6,7 +6,9 @@ import com.project.screenrecorder.DTO.watch.VideoAuthRequest;
 import com.project.screenrecorder.DTO.watch.WatchUrlResponse;
 import com.project.screenrecorder.Security.SecurityBridge;
 import com.project.screenrecorder.Service.WatchService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.simpleframework.xml.Path;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,9 +25,11 @@ public class WatchController {
 
     @GetMapping("/{token}")
     ResponseEntity<WatchUrlResponse> watchUrl(
-            @PathVariable String token
+            @PathVariable String token,
+            HttpServletRequest request
+
     ){
-        WatchUrlResponse responseUrl = watchService.getWatchUrl(token );
+        WatchUrlResponse responseUrl = watchService.getWatchUrl(token,request);
         return ResponseEntity.ok(responseUrl);
     }
 
@@ -40,9 +44,10 @@ public class WatchController {
     @GetMapping("/{token}/stream")
     ResponseEntity<WatchUrlResponse> watchUrlStream(
             @AuthenticationPrincipal SecurityBridge current ,
-            @PathVariable String token
+            @PathVariable String token,
+            HttpServletRequest request
     ){
-        WatchUrlResponse reponseUrl = watchService.getWatchUrl(token , current);
+        WatchUrlResponse reponseUrl = watchService.getWatchUrl(token ,current,request);
         return ResponseEntity.ok(reponseUrl);
     }
 

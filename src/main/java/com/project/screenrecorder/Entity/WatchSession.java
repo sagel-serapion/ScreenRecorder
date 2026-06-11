@@ -22,11 +22,11 @@ public class WatchSession {
 
     private LocalDateTime startedAt;
 
-    private LocalDateTime lastseenAt;
+    private LocalDateTime lastSeenAt;
 
     private int lastPosition;
 
-    private  int  watchDuration;
+    private  Long  watchDuration;
 
     @PrePersist
     protected void onCreate(){

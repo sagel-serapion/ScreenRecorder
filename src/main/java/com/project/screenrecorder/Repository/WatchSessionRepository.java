@@ -5,10 +5,15 @@ import com.project.screenrecorder.Entity.WatchSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
+
 @Repository
 public interface WatchSessionRepository extends JpaRepository<WatchSession,String> {
 
+     List<WatchSession> findByVideoId(String videoId);
 
+     Optional<WatchSession> findByVideoIdAndViewerIp(String videoId,String viewerIp);
 
 
 

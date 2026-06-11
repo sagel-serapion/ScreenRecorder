@@ -5,13 +5,13 @@ import com.project.screenrecorder.DTO.watch.WatchUrlResponse;
 import com.project.screenrecorder.Entity.Video;
 import com.project.screenrecorder.Exception.InvalidPasswordException;
 import com.project.screenrecorder.Exception.VideoNotFoundException;
-import com.project.screenrecorder.Exception.VideoNotReadyException;
 import com.project.screenrecorder.Repository.VideoRepository;
 import com.project.screenrecorder.Security.JwtUtils;
 import com.project.screenrecorder.Security.SecurityBridge;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.http.Method;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -42,6 +42,12 @@ public class WatchService {
     private final JwtUtils jwtUtils;
 
     private final AuthenticationManager authenticationManager;
+
+    private final AnalyticsService analyticsService;
+
+    private final ServiceUtils serviceUtils;
+
+
 
 
     private String generatePresignedUrl(String videoId){
@@ -97,15 +103,10 @@ public class WatchService {
 
     }
 
-    public WatchUrlResponse getWatchUrl(String token){
 
-        Video video = videoRepository.findByToken(token).orElseThrow(
-                () -> new VideoNotFoundException("Video with " + token + " not found")
-        );
+    public WatchUrlResponse getWatchUrl(String token,HttpServletRequest request){
 
-        if (video.getStatus() != Video.VideoStatus.READY){
-            throw new VideoNotReadyException("Video with "+ token + " is still processing");
-        }
+       Video video = serviceUtils.resolveVideo(token);
 
         if (video.getPasswordHash() != null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
@@ -113,16 +114,23 @@ public class WatchService {
         }
         WatchUrlResponse response = new WatchUrlResponse();
         response.setMinioUrl(generatePresignedUrl(video.getId()));
+
+        analyticsService.startSession(video.getId(), serviceUtils.getViewerIp(request));
+
+
+
         return response;
     }
 
-    public WatchUrlResponse getWatchUrl(String token , SecurityBridge current){
+    public WatchUrlResponse getWatchUrl(String token , SecurityBridge current,HttpServletRequest request){
 
         if (!token.equals(current.getUsername())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Token mismatch");
         }
         WatchUrlResponse response = new WatchUrlResponse();
         response.setMinioUrl(generatePresignedUrl(current.getVideoId()));
+
+        analyticsService.startSession(current.getVideoId(),serviceUtils.getViewerIp(request));
         return response;
 
     }
