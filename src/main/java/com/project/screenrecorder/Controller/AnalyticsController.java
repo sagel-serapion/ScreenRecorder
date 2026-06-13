@@ -1,6 +1,7 @@
 package com.project.screenrecorder.Controller;
 
 
+import com.project.screenrecorder.DTO.analytics.AnalyticsResponse;
 import com.project.screenrecorder.DTO.analytics.PingRequest;
 import com.project.screenrecorder.Service.AnalyticsService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,5 +25,13 @@ public class AnalyticsController {
         analyticsService.recordPing(token,request, pingRequest.getPosition());
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/{token}/analytics")
+    public ResponseEntity<AnalyticsResponse> getAnalytics(
+            @PathVariable String token
+    ){
+        return ResponseEntity.ok().body(analyticsService.getAnalytics(token));
+    }
+
 
 }

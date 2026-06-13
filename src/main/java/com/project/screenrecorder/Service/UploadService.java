@@ -130,7 +130,7 @@ public class UploadService {
     public CompleteUploadResponse completeUpload(String videoId) throws  Exception{
 
 
-        System.out.println("FFmpeg path: " + ffmpegPath);
+
 
 
 

@@ -2,6 +2,7 @@ package com.project.screenrecorder.DTO.analytics;
 
 
 import lombok.Data;
+import java.util.Map;
 
 @Data
 public class AnalyticsResponse {
@@ -10,6 +11,8 @@ public class AnalyticsResponse {
 
         private int averageWatchDuration;
 
-        private int dropOffPoint;
+        private String dropOffPoint;
+
+        private Map<String,Integer> dropOffBreakdown;
 
 }

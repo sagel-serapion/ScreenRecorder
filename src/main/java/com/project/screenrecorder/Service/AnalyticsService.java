@@ -1,6 +1,7 @@
 package com.project.screenrecorder.Service;
 
 
+import com.project.screenrecorder.DTO.analytics.AnalyticsResponse;
 import com.project.screenrecorder.Entity.Video;
 import com.project.screenrecorder.Entity.WatchSession;
 import com.project.screenrecorder.Exception.VideoNotFoundException;
@@ -12,7 +13,12 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.Math.floor;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +85,7 @@ public class AnalyticsService {
 
 
 
-            WatchSession watchSession = watchSessionRepository.findByVideoIdAndViewerIp(videoId,viewerIp)
+            WatchSession watchSession = watchSessionRepository.findTopByVideoIdAndViewerIpOrderByStartedAtDesc(videoId,viewerIp)
                     .orElseThrow(() -> new VideoNotFoundException("watchSession object not found"));
 
             watchSession.setLastPosition(position);
@@ -91,6 +97,49 @@ public class AnalyticsService {
         }
 
     }
+
+    public AnalyticsResponse getAnalytics(String token){
+
+        Video video = serviceUtils.resolveVideo(token);
+
+
+
+        List<WatchSession> watchSessions = watchSessionRepository.findByVideoId(video.getId());
+        int totalViews = watchSessions.size();
+
+        int totalWatchDuration = 0;
+
+        Map<String,Integer> buckets = new HashMap<>();
+
+
+        for (WatchSession watchSession :watchSessions ){
+            totalWatchDuration += watchSession.getWatchDuration();
+
+            int bucketStart = (int)(Math.floor(watchSession.getLastPosition() / 10.0) * 10);
+            String key = bucketStart + "-" + (bucketStart + 10) + "s";
+            buckets.put(key,buckets.getOrDefault(key,0) + 1);
+
+
+        }
+
+        String dropOffPoint = buckets.entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse(null);
+
+        int avgWatchDuration  = totalViews > 0 ? totalWatchDuration / totalViews : 0;
+
+        AnalyticsResponse response = new AnalyticsResponse();
+        response.setTotalViews(totalViews);
+        response.setDropOffPoint(dropOffPoint);
+        response.setAverageWatchDuration(avgWatchDuration);
+        response.setDropOffBreakdown(buckets);
+        return response;
+
+
+    }
+
+
 
 
 

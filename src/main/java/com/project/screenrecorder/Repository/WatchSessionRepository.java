@@ -3,6 +3,7 @@ package com.project.screenrecorder.Repository;
 
 import com.project.screenrecorder.Entity.WatchSession;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -13,8 +14,7 @@ public interface WatchSessionRepository extends JpaRepository<WatchSession,Strin
 
      List<WatchSession> findByVideoId(String videoId);
 
-     Optional<WatchSession> findByVideoIdAndViewerIp(String videoId,String viewerIp);
-
+     Optional<WatchSession> findTopByVideoIdAndViewerIpOrderByStartedAtDesc(String videoId,String viewerIp);
 
 
 }
